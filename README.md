@@ -10,11 +10,11 @@ The KOkobo KOReader plugin allows you to download your purchased Kobo books and 
 
 # Screenshots
 
-<img width="300" alt="Main view" src="https://github.com/user-attachments/assets/f0277186-4dfa-4a84-a77f-a8da03e0a3fb" />
+<img width="270" alt="Main view" src="https://github.com/user-attachments/assets/f0277186-4dfa-4a84-a77f-a8da03e0a3fb" />
 
-<img width="300" alt="Unread books" src="https://github.com/user-attachments/assets/c4d1f5fb-c64c-49a6-8760-d0a31d8c7829" />
+<img width="270" alt="Unread books" src="https://github.com/user-attachments/assets/c4d1f5fb-c64c-49a6-8760-d0a31d8c7829" />
 
-<img width="300" alt="Download dialog" src="https://github.com/user-attachments/assets/7feb9407-03af-47e4-aee8-54cc1ea46436" />
+<img width="270" alt="Download dialog" src="https://github.com/user-attachments/assets/7feb9407-03af-47e4-aee8-54cc1ea46436" />
 
 [More...](https://github.com/TnS-hun/KOkobo/wiki/Screenshots)
 
