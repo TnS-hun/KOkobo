@@ -3,6 +3,7 @@ The KOkobo KOReader plugin allows you to download your purchased Kobo books and 
 # Features
 - downloading DRM-free and DRM-protected books from Kobo
 - downloading books available in the Kobo Plus subscription
+- downloading book samples from Kobo
 - book listing grouped by state (unread, read, all, archived), and option to sort by author, title or read date
 - viewing the wishlisted books from Kobo, and option to sort by author, title or wishlisting date
 - showing basic information about the books (short description, ISBN, language, publisher, publication date)
@@ -12,9 +13,13 @@ The KOkobo KOReader plugin allows you to download your purchased Kobo books and 
 - a Kobo account
 
 # Installation
-1. copy the contents of the downloaded zip file into the `plugins` directory
-2. restart KOReader
-3. select Kobo books from the hamburger (☰) menu to start using the plugin
+1. download the source code of this plugin as a ZIP file by [clicking here](https://github.com/TnS-hun/KOkobo/archive/refs/heads/main.zip) or using the dropdown button
+2. connect your e-reader to your computer with USB
+3. copy the `kokobo.koplugin` directory into KOReader's `plugins` directory on your e-reader. In case of Kobo e-readers it will be at `.adds/koreader/plugins`.
+4. disconnect the USB cable
+5. restart KOReader
+6. make sure that Wi-Fi is enabled in KOReader. (Internet connection is required for synchronization and book downloading within the KOkobo plugin. Once the desired book has been downloaded internet is no longer needed.)
+7. select Kobo books from the hamburger (☰) menu to start using the plugin
 
 # FAQ
 
@@ -37,6 +42,8 @@ To have the most convenient alternative to [kobo-book-downloader](https://github
 Yes, the location is a bit awkward but external plugins cannot freely position their menu items currently.
 
 ## How can I uninstall the KOkobo plugin from KOReader?
-- delete the `kokobo.koplugin` directory from the `plugins` directory
-- restart KOReader
-- delete the `kokobo.sqlite` file from the `cache` directory
+1. connect your e-reader to your computer with USB
+2. delete the `kokobo.koplugin` directory from KOReader's `plugins` directory on your e-reader. In case of Kobo e-readers it will be at `.adds/koreader/plugins/kokobo.koplugin`.
+3. delete the `kokobo.sqlite` file from KOReader's `cache` directory on your e-reader. In case of Kobo e-readers it will be at `.adds/koreader/cache/kokobo.sqlite`.
+4. disconnect the USB cable
+5. restart KOReader
