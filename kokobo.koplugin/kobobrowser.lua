@@ -194,7 +194,7 @@ function KoboBrowser:loginWaitTillActivation(activation_check_url, finished_call
     finished_callback()
 end
 
-function KoboBrowser:login(finished_callback)
+function KoboBrowser:loginStep2(finished_callback)
     local activation_check_url, activation_code = KoboApi:activateOnWeb()
     if activation_check_url == nil or activation_code == nil then
         UIManager:show(InfoMessage:new{
@@ -206,21 +206,43 @@ function KoboBrowser:login(finished_callback)
     end
 
     local activation_message = T(_([[
-The KOkobo plugin uses the same web-based activation method to log in as the Kobo e-readers.
-You will have to open the link below in your browser and enter the code, then you might need to login too if kobo.com asks you to.
-
 Open
 "https://www.kobo.com/activate"
 and enter %1 as the code.
 
-After finishing the activation on kobo.com press the I'm done with activation button below.
-]]), activation_code)
+After finishing the activation on kobo.com press the Finish activation button below.]]), activation_code)
 
     UIManager:show(ConfirmBox:new{
         text = activation_message,
-        ok_text = _("I'm done with activation"),
+        dismissable = false,
+        flush_events_on_show = true,
+        icon = "notice-warning",
+        ok_text = _("Finish activation"),
         ok_callback = function()
             self:loginWaitTillActivation(activation_check_url, finished_callback)
+        end,
+        cancel_callback = function()
+            finished_callback()
+        end,
+    })
+end
+
+function KoboBrowser:loginStep1(finished_callback)
+    local message = _([[
+The KOkobo plugin allows you to view your Kobo library, download your purchased books and books from your Kobo Plus subscription, view your wishlist and download previews from it.
+
+The KOkobo plugin uses the same web-based activation method to log in as the Kobo e-readers.
+
+After pressing the Start activation button below an activation link and code will be shown on the next page that you will have to open in your browser and enter the code there, then you might need to login too if kobo.com asks you to.]])
+
+    UIManager:show(ConfirmBox:new{
+        text = message,
+        dismissable = false,
+        flush_events_on_show = true,
+        icon = "notice-warning",
+        ok_text = _("Start activation"),
+        ok_callback = function()
+            self:loginStep2(finished_callback)
         end,
         cancel_callback = function()
             finished_callback()
@@ -274,7 +296,7 @@ function KoboBrowser:loginAndSynchronizeBooksAndWishlist()
                 self:synchronizeBooksAndWishlist()
             end
         end
-        self:login(login_finished)
+        self:loginStep1(login_finished)
     end
 end
 
