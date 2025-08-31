@@ -16,8 +16,8 @@ function Kokobo:showCatalog()
 end
 
 function Kokobo:addToMainMenu(menu_items)
-	menu_items.kokobo = {
-		text = _("Kobo"),
+	menu_items.kobobooks = {
+		text = _("Kobo books"),
         sorting_hint = "main", -- in which menu this should be appended
 		callback = function() self:showCatalog() end
 	}

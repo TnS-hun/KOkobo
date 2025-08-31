@@ -21,6 +21,7 @@ function KoboCatalog:init()
         is_popout = false,
         is_borderless = true,
         is_enable_shortcut = false,
+        title_bar_left_icon = "appbar.settings",
         close_callback = function() return self:onClose() end,
     }
 

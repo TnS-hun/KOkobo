@@ -456,13 +456,14 @@ function KoboDb:getBooks(include_read, include_unread, include_archived)
 	end
 
     local books = {}
-    local db_books = self.db:exec(string.format("SELECT entitlement_id, title, author, read FROM books %s;", where))
+    local db_books = self.db:exec(string.format("SELECT entitlement_id, title, author, last_time_finished FROM books %s;", where))
     if db_books ~= nil then
         for i, entitlement_id in ipairs(db_books.entitlement_id) do
             local book = {
                 entitlement_id = entitlement_id,
                 title = db_books.title[i],
-                author = db_books.author[i]
+                author = db_books.author[i],
+                last_time_finished = db_books.last_time_finished[i],
             }
             table.insert(books, book)
         end
@@ -473,13 +474,14 @@ end
 
 function KoboDb:getWishlist()
     local items = {}
-    local db_items = self.db:exec("SELECT cross_revision_id, title, author FROM wishlist;")
+    local db_items = self.db:exec("SELECT cross_revision_id, title, author, date_added FROM wishlist;")
     if db_items ~= nil then
         for i, cross_revision_id in ipairs(db_items.cross_revision_id) do
             local item = {
                 cross_revision_id = cross_revision_id,
                 title = db_items.title[i],
-                author = db_items.author[i]
+                author = db_items.author[i],
+                date_added = db_items.date_added[i],
             }
             table.insert(items, item)
         end

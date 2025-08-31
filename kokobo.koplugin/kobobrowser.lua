@@ -15,9 +15,13 @@ local UIManager = require("ui/uimanager")
 local util = require("util")
 local _ = require("gettext")
 
-local function formatBookTitle(title, author)
+local function formatBookTitle(title, author, title_first)
     if #author > 0 then
-        return author .. ": " .. title
+        if title_first then
+            return title .. " by " .. author
+        else
+            return author .. ": " .. title
+        end
     else
         return title
     end
@@ -40,37 +44,95 @@ local function extendEmptyItems(items)
     end
 end
 
-local function loadBooks(include_read, include_unread, include_archived)
+local function getSortSettingName(list_type)
+    if list_type == "unread_books" or list_type == "read_books" or list_type == "all_books" or list_type == "wishlist" or list_type == "archived_books" then
+        return "kobo_" .. list_type .. "_sort"
+    end
+
+    return nil
+end
+
+local function loadBooks(list_type, include_read, include_unread, include_archived)
     local books = KoboDb:getBooks(include_read, include_unread, include_archived)
+    local sort_by = G_reader_settings:readSetting(getSortSettingName(list_type))
 
     local table_items = {}
     for _, book in ipairs(books) do
         local table_item = {
-            text = formatBookTitle(book.title, book.author),
+            text = formatBookTitle(book.title, book.author, sort_by == "title"),
+            title = book.title,
+            author = book.author,
+            last_time_finished = book.last_time_finished,
             type = "book",
             entitlement_id = book.entitlement_id,
         }
         table.insert(table_items, table_item)
     end
 
-    table.sort(table_items, function(a, b) return ffiUtil.strcoll(a.text, b.text) end)
+    table.sort(table_items, function(a, b)
+        if sort_by == "title" then
+            if a.title == b.title then
+                return ffiUtil.strcoll(a.text, b.text)
+            else
+                return ffiUtil.strcoll(a.title, b.title)
+            end
+        elseif sort_by == "last_read_date" then
+            if a.last_time_finished == nil and b.last_time_finished == nil then
+                return ffiUtil.strcoll(a.text, b.text)
+            elseif a.last_time_finished == nil then
+                return false
+            elseif b.last_time_finished == nil then
+                return true
+            else
+                return a.last_time_finished > b.last_time_finished
+            end
+        else
+            return ffiUtil.strcoll(a.text, b.text)
+        end
+    end)
+
     return table_items
 end
 
-local function loadWishlist()
+local function loadWishlist(list_type)
     local items = KoboDb:getWishlist()
+    local sort_by = G_reader_settings:readSetting(getSortSettingName(list_type))
 
     local table_items = {}
     for i, item in ipairs(items) do
         local table_item = {
-            text = formatBookTitle(item.title, item.author),
+            text = formatBookTitle(item.title, item.author, sort_by == "title"),
+            title = item.title,
+            author = item.author,
+            date_added = item.date_added,
             type = "wishlist_item",
             cross_revision_id = item.cross_revision_id,
         }
         table.insert(table_items, table_item)
     end
 
-    table.sort(table_items, function(a, b) return ffiUtil.strcoll(a.text, b.text) end)
+    table.sort(table_items, function(a, b)
+        if sort_by == "title" then
+            if a.title == b.title then
+                return ffiUtil.strcoll(a.text, b.text)
+            else
+                return ffiUtil.strcoll(a.title, b.title)
+            end
+        elseif sort_by == "wishlisting_date" then
+            if a.date_added == nil and b.date_added == nil then
+                return ffiUtil.strcoll(a.text, b.text)
+            elseif a.date_added == nil then
+                return false
+            elseif b.date_added == nil then
+                return true
+            else
+                return a.date_added > b.date_added
+            end
+        else
+            return ffiUtil.strcoll(a.text, b.text)
+        end
+    end)
+
     return table_items
 end
 
@@ -136,6 +198,7 @@ local KoboBrowser = Menu:extend{
 
 function KoboBrowser:init()
     self.item_table = menu_items
+    self.onLeftButtonTap = function() self:showSettings() end
     Menu.init(self) -- call parent's init()
 end
 
@@ -152,24 +215,24 @@ function KoboBrowser:onClose()
     return Menu.onClose(self)
 end
 
-function KoboBrowser:openBookList(title, include_read, include_unread)
-    local books = loadBooks(include_read, include_unread, false)
+function KoboBrowser:openBookList(list_type, title, include_read, include_unread)
+    local books = loadBooks(list_type, include_read, include_unread, false)
     title = string.format("%s (%d)", title, #books)
-    self.paths = {true}
+    self.paths = {list_type}
     self:switchItemTable(title, extendEmptyItems(books))
 end
 
-function KoboBrowser:openWishlist()
-    local wishlist = loadWishlist()
+function KoboBrowser:openWishlist(list_type)
+    local wishlist = loadWishlist(list_type)
     local title = string.format("Wishlist (%d)", #wishlist)
-    self.paths = {true}
+    self.paths = {list_type}
     self:switchItemTable(title, extendEmptyItems(wishlist))
 end
 
-function KoboBrowser:openArchivedBooks()
-    local archivedBooks = loadBooks(false, false, true)
+function KoboBrowser:openArchivedBooks(list_type)
+    local archivedBooks = loadBooks(list_type, false, false, true)
     local title = string.format("Archived books (%d)", #archivedBooks)
-    self.paths = {true}
+    self.paths = {list_type}
     self:switchItemTable(title, extendEmptyItems(archivedBooks))
 end
 
@@ -300,21 +363,27 @@ function KoboBrowser:loginAndSynchronizeBooksAndWishlist()
     end
 end
 
+function KoboBrowser:openList(list_type)
+    if list_type == "unread_books" then
+        self:openBookList(list_type, "Unread books", false, true)
+    elseif list_type == "read_books" then
+        self:openBookList(list_type, "Read books", true, false)
+    elseif list_type == "all_books" then
+        self:openBookList(list_type, "All books", true, true)
+    elseif list_type == "wishlist" then
+        self:openWishlist(list_type)
+    elseif list_type == "archived_books" then
+        self:openArchivedBooks(list_type)
+    end
+end
+
 function KoboBrowser:onMenuSelect(item)
-    if item.type == "unread_books" then
-        self:openBookList("Unread books", false, true)
-    elseif item.type == "read_books" then
-        self:openBookList("Read books", true, false)
-    elseif item.type == "all_books" then
-        self:openBookList("All books", true, true)
-    elseif item.type == "wishlist" then
-        self:openWishlist()
-    elseif item.type == "archived_books" then
-        self:openArchivedBooks()
-    elseif item.type == "synchronize" then
+    if item.type == "synchronize" then
         self:loginAndSynchronizeBooksAndWishlist()
     elseif item.type == "book" or item.type == "wishlist_item" then
         self:showBookDialog(item)
+    else
+        self:openList(item.type)
     end
 end
 
@@ -539,6 +608,69 @@ function KoboBrowser:showBookDialog(item)
         buttons = buttons,
     }
     UIManager:show(self.download_dialog)
+end
+
+function KoboBrowser:showSettings()
+    if #self.paths ~= 1 then
+        UIManager:show(InfoMessage:new{
+            text = "To change the sorting settings open one of the book list pages.",
+            icon = "notice-warning",
+        })
+
+        return
+    end
+
+    local list_type = self.paths[ 1 ]
+    local sort_setting_name = getSortSettingName(list_type)
+    local sort_by = G_reader_settings:readSetting(sort_setting_name)
+    if sort_by == nil then
+        sort_by = "author"
+    end
+
+    local RadioButtonWidget = require("ui/widget/radiobuttonwidget")
+    local radio_buttons = {
+        {{
+            text = _("Author"),
+            checked = sort_by == "author",
+            provider = function()
+                G_reader_settings:saveSetting(sort_setting_name, "author")
+            end
+        }},
+        {{
+            text = _("Title"),
+            checked = sort_by == "title",
+            provider = function()
+                G_reader_settings:saveSetting(sort_setting_name, "title")
+            end
+        }},
+    }
+
+    if list_type == "wishlist" then
+        table.insert(radio_buttons, {{
+            text = _("Wishlisting date"),
+            checked = sort_by == "wishlisting_date",
+            provider = function()
+                G_reader_settings:saveSetting(sort_setting_name, "wishlisting_date")
+            end,
+        }})
+    elseif list_type ~= "unread_books" then
+        table.insert(radio_buttons, {{
+            text = _("Last read date"),
+            checked = sort_by == "last_read_date",
+            provider = function()
+                G_reader_settings:saveSetting(sort_setting_name, "last_read_date")
+            end,
+        }})
+    end
+
+    UIManager:show(RadioButtonWidget:new{
+        title_text = _("Sort by"),
+        radio_buttons = radio_buttons,
+        callback = function(radio)
+            radio.provider()
+            self:openList(list_type)
+        end,
+    })
 end
 
 return KoboBrowser

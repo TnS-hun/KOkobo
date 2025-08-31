@@ -3,7 +3,9 @@ The KOkobo KOReader plugin allows you to download your purchased Kobo books and 
 # Features
 - downloading DRM-free and DRM-protected books from Kobo
 - downloading books available in the Kobo Plus subscription
-- viewing Kobo wishlist
+- book listing grouped by state (unread, read, all, archived), and option to sort by author, title or read date
+- viewing the wishlisted books from Kobo, and option to sort by author, title or wishlisting date
+- showing basic information about the books (short description, ISBN, language, publisher, publication date)
 
 # Requirements
 - KOReader version 2025.08 or newer
@@ -12,7 +14,7 @@ The KOkobo KOReader plugin allows you to download your purchased Kobo books and 
 # Installation
 1. copy the contents of the downloaded zip file into the `plugins` directory
 2. restart KOReader
-3. select Kobo from the hamburger (☰) menu to start using the plugin
+3. select Kobo books from the hamburger (☰) menu to start using the plugin
 
 # FAQ
 
@@ -31,7 +33,7 @@ No, the login happens on the official Kobo website, the plugin only stores token
 ## Why this plugin was made?
 To have the most convenient alternative to [kobo-book-downloader](https://github.com/TnS-hun/kobo-book-downloader) and other tools for downloading, DRM removal and transferring of Kobo books to KOReader.
 
-## Why the Kobo menu item is located below Exit in the ☰ menu?
+## Why the Kobo books menu item is located below Exit in the ☰ menu?
 Yes, the location is a bit awkward but external plugins cannot freely position their menu items currently.
 
 ## How can I uninstall the KOkobo plugin from KOReader?
